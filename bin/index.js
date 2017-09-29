@@ -8,15 +8,16 @@ const download = require('download-git-repo')
 const ora = require('ora')
 const checkVersion = require('./check-version')
 
-function init (projectDir) {
-  let defaultTemplateRepo = 'wangdahoo/vuead-template'
+function getRepoName (templateName) {
+  return `wangdahoo/createmyapp-${templateName || 'express'}`
+}
 
+function init (templateName, projectDir) {
   checkVersion(function () {
     shell.mkdir('-p', projectDir)
-
     const spinner = ora('initializing...').start()
     spinner.color = 'green'
-    download(defaultTemplateRepo, projectDir, function (err) {
+    download(getRepoName(templateName), projectDir, function (err) {
       if (err) {
         spinner.fail('fail.')
         throw err
@@ -30,9 +31,9 @@ program
   .version(require('../package').version)
 
 program
-  .command('init <dir>')
-  .description('run the given remote command')
-  .action(function(dir) {
+  .command('init <template> <dir>')
+  .description('init a project from given template.')
+  .action(function(template, dir) {
     let projectDir = path.resolve(dir || '.')
 
     if (exists(projectDir)) {
@@ -41,10 +42,10 @@ program
         message: 'Target directory exists. Continue?',
         name: 'ok'
       }]).then(function (answers) {
-        if (answers.ok) init(projectDir)
+        if (answers.ok) init(template, projectDir)
       })
     } else {
-      init(projectDir)
+      init(template, projectDir)
     }
   })
 
